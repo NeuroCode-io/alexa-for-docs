@@ -351,3 +351,28 @@ DPR response:
                    'his',
         'score': 7.87277889251709}]
 ```
+## Evaluating 
+To be able to evaluate the questionan-answering systems we need labeled data, that is, text, questions and answers about the text. Here we use a subset of Natural Questions development set containing 50 documents. We evaluate each part of the system.
+### Reader
+Reader Top-N-Accuracy is the proportion of predicted answers that match with their corresponding correct answer:
+```
+Top-N-Accuracy: 0.6111111111111112
+```
+Reader Exact Match is the proportion of questions where the predicted answer is exactly the same as the correct answer:
+```
+Reader Exact Match: 0.2777777777777778
+```
+Reader F1-Score is the average overlap between the predicted answers and the correct answers:
+```
+Reader F1-Score: 0.30750487329434695
+```
+
+### Elasticsearch Retriever
+Retriever Recall is the proportion of questions for which the correct document containing the answer is among the correct documents:
+```
+Retriever Recall: 1.0
+```
+Retriever Mean Avg Precision rewards retrievers that give relevant documents a higher rank:
+```
+Retriever Mean Avg Precision: 0.9367283950617283
+```
