@@ -97,6 +97,7 @@ finder = Finder(reader, retriever)
 We will ask a couple of questions and compare the answers using the different retrievers.
 
 Question: What is RNN?
+
 Elasticsearch Retriever repsonse:
 ```
 [   {   'answer': 'Recurrent Neural Networks',
@@ -144,6 +145,7 @@ DPR response:
 
 
 Question: What is a layer?
+
 Elasticsearch Retriever repsonse:
 ```
 [   {   'answer': 'one hidden layer',
@@ -190,6 +192,7 @@ DPR response:
 
 
 Question: What is logistic regression?
+
 Elasticsearch Retriever repsonse:
 ```
 [   {   'answer': 'classification tasks',
@@ -242,6 +245,7 @@ DPR response:
 
 
 Question: What is deep learning?
+
 Elasticsearch Retriever repsonse:
 ```
 [   {   'answer': 'lowest bias and the lowest variance',
@@ -297,6 +301,7 @@ DPR response:
 
 
 Question: What is early stopping used for?
+
 Elasticsearch Retriever repsonse:
 ```
 [   {   'answer': 'monitor the desired metric',
@@ -367,12 +372,12 @@ Reader F1-Score is the average overlap between the predicted answers and the cor
 Reader F1-Score: 0.30750487329434695
 ```
 
-### Elasticsearch Retriever
-Retriever Recall is the proportion of questions for which the correct document containing the answer is among the correct documents:
-```
-Retriever Recall: 1.0
-```
-Retriever Mean Avg Precision rewards retrievers that give relevant documents a higher rank:
-```
-Retriever Mean Avg Precision: 0.9367283950617283
-```
+### Retriever
+Retriever Recall is the proportion of questions for which the correct document containing the answer is among the correct documents. For both retrievers we had that for 54 out of 54 questions (100.00%), the answer was in the top-20 candidate passages selected by the retrievers. Retriever Mean Avg Precision rewards retrievers that give relevant documents a higher rank.
+
+| Retriever | Recall |  Mean Avg Precision |
+|:----------|:------:|:-------------------:|
+| Elastic   |  1.0   | 0.9367              |
+| DPR       |  1.0   | 0.9573              |
+
+
