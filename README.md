@@ -1,24 +1,26 @@
 # Alexa for Documents
 
 ## Overview 
-In *text similarity* search a user enters a free-text query, and documents are ranked based on their similarity to the query. Text similarity can be useful, amongst other things, for *Question-answering* tasks. That is, given a collection of frequently asked questions, find questions that are similar to the one the user has entered.
+Whenever you have large amounts of text documents that you need to search, full-text search is a tried and true approach that has been popular for a long time.
 
+However, whenever language in those documents is highly context-dependent, full-text search falls apart. Human language is rich —words in different contexts have different meanings, and users can often find themselves sifting through meaningless results to find that one document they're looking for.
 
-We will explore both a sparse and dense method for text similarity search using the Haystack library. The key components of the exploration are:
+The goal is to be able to index a large number of documents and issue simple text queries similarly to a full-text search engine, but have them be context- and semantically aware. This problem is referred to Text Similarity Search. A user enters a short free-text query, and documents are ranked based on their similarity to the query.  Text similarity can be useful in a variety of use cases such as Question-answering. 
+Here we will explore two different methods, Elasticsearch, which offers both to store documents and similarity search, and Dense Passage Retriever (DPR) with the Faiss library.  
+We will implement text similarity search using the Haystack library. Moreover, the library also provides an implementation of the Question-Answering task.  The key components of the task are: 
 1. **FileConverter**: Extracts pure text from files (pdf, docx, pptx, html and many more).
 2. **PreProcessor**: Cleans and splits texts into smaller chunks.
 3. **DocumentStore**: Database storing the documents, metadata and vectors for our search. We will use Elasticsearch and FAISS. 
 4. **Retriever**: Fast algorithms that identify candidate documents for a given query from a large collection of documents. Retrievers narrow down the search space significantly and are therefore key for scalable QA. We will use a sparse method applying *Elasticsearch* and the state of the art dense method *Dense Passage Retrieval*.
-5. **Reader**: Neural network (e.g. BERT or RoBERTA) that reads through texts in detail to find an answer. The Reader takes multiple passages of text as input and returns top-n answers. Models are trained via FARM or Transformers on SQuAD like tasks. 
-6. **Finder**: Glues together a Retriever + Reader as a pipeline to provide an easy-to-use question answering interface. 
-
+5. **Reader**: Neural network (e.g. BERT or RoBERTA) that reads through texts in detail to find an answer. The Reader takes multiple passages of text as input and returns top-n answers. Models are trained via FARM or Transformers on SQuAD like tasks. 
+6. **Finder**: Glues together a Retriever + Reader as a pipeline to provide an easy-to-use question answering interface.
 
 ## Data
-The data the book *The deep learning with Keras*, in pdf form. We load the pdf, convert it into text and split the book into smaller chuncks which we collect in a dictionary:
+The data is the book *The deep learning with Keras*, in pdf form. We load the pdf, convert it into text and split the book into smaller chuncks which we collect in a dictionary:
 
 ```
 from haystack.preprocessor.utils import convert_files_to_dicts
-dicts=convert_files_to_dicts("/home/elena/Downloads/data/", split_paragraphs=True)
+dicts=convert_files_to_dicts("./data/", split_paragraphs=True) 
 print(dicts[0])
 ```
 ```
