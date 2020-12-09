@@ -5,9 +5,9 @@ Whenever you have large amounts of text documents that you need to search, full-
 
 However, whenever language in those documents is highly context-dependent, full-text search falls apart. Human language is rich —words in different contexts have different meanings, and users can often find themselves sifting through meaningless results to find that one document they're looking for.
 
-The goal is to be able to index a large number of documents and issue simple text queries similarly to a full-text search engine, but have them be context- and semantically aware. This problem is referred to Text Similarity Search. A user enters a short free-text query, and documents are ranked based on their similarity to the query.  Text similarity can be useful in a variety of use cases such as Question-answering. 
-Here we will explore two different methods, Elasticsearch, which offers both to store documents and similarity search, and Dense Passage Retriever (DPR) with the Faiss library.  
-We will implement text similarity search using the Haystack library. Moreover, the library also provides an implementation of the Question-Answering task.  The key components of the task are: 
+The goal is to be able to index a large number of documents and issue simple text queries similarly to a full-text search engine, but have them be context- and semantically aware. This problem is referred to Text Similarity Search. A user enters a short free-text query, and documents are ranked based on their similarity to the query. Text similarity can be useful in a variety of use cases such as Question-answering which we will consider here with the help of the Haystack library. In particular, we will explore two different methods to retrieve the most relevant documents for a given query: Elasticsearch, which both offers a database and similarity search, and Dense Passage Retriever (DPR) with the Faiss library.  
+
+The key components of the task are: 
 1. **FileConverter**: Extracts pure text from files (pdf, docx, pptx, html and many more).
 2. **PreProcessor**: Cleans and splits texts into smaller chunks.
 3. **DocumentStore**: Database storing the documents, metadata and vectors for our search. We will use Elasticsearch and FAISS. 
@@ -359,27 +359,29 @@ DPR response:
         'score': 7.87277889251709}]
 ```
 ## Evaluating 
-To be able to evaluate the questionan-answering systems we need labeled data, that is, text, questions and answers about the text. Here we use a subset of Natural Questions development set containing 50 documents. We evaluate each part of the system.
+To be able to evaluate the questionan-answering systems and to compare the two different retrievers, we need labeled data. That is, different documents, questions concerning the documents and the corresponding answers. Here we use a subset of Natural Questions development set containing 50 documents. In particular, there are two datasets. The first one contains 50 documents whoch hold different texts. Each document has its own unique id. The second dataset contains questions about the documents, the document id which holds the answer and the answer itself. 
+
+
 ### Reader
 Reader Top-N-Accuracy is the proportion of predicted answers that match with their corresponding correct answer:
 ```
-Top-N-Accuracy: 0.6111111111111112
+Top-N-Accuracy: 0.6111
 ```
 Reader Exact Match is the proportion of questions where the predicted answer is exactly the same as the correct answer:
 ```
-Reader Exact Match: 0.2777777777777778
+Reader Exact Match: 0.2778
 ```
 Reader F1-Score is the average overlap between the predicted answers and the correct answers:
 ```
-Reader F1-Score: 0.30750487329434695
+Reader F1-Score: 0.3075
 ```
 
 ### Retriever
-Retriever Recall is the proportion of questions for which the correct document containing the answer is among the correct documents. For both retrievers we had that for 54 out of 54 questions (100.00%), the answer was in the top-20 candidate passages selected by the retrievers. Retriever Mean Avg Precision rewards retrievers that give relevant documents a higher rank.
+Retriever Recall is the proportion of questions for which the correct document containing the answer is among the correct documents. For DBR we had that for 52 out of 54 questions (96.30%), the answer was in the top-3 candidate passages selected by the retrievers. For Elasticsearch we had 51 out of 54 (94.44%). Retriever Mean Avg Precision rewards retrievers that give relevant documents a higher rank.
 
 | Retriever | Recall |  Mean Avg Precision |
 |:----------|:------:|:-------------------:|
-| Elastic   |  1.0   | 0.9367              |
-| DPR       |  1.0   | 0.9573              |
+| Elastic   |  0.9444| 0.9259              |
+| DPR       |  0.9630| 0.9537              |
 
 
