@@ -1,22 +1,162 @@
 # Alexa for Documents
 
 ## Overview 
-Whenever you have large amounts of text documents that you need to search, full-text search is a tried and true approach that has been popular for a long time.
+We will explore the problem of **Text Similarity Search**.  In this type of search, a user enters a short free-text query, and documents are ranked based on their similarity to the query. Text similarity can be useful in a variety of use cases such as Question-answering tasks. 
 
-However, whenever language in those documents is highly context-dependent, full-text search falls apart. Human language is rich —words in different contexts have different meanings, and users can often find themselves sifting through meaningless results to find that one document they're looking for.
-
-The goal is to be able to index a large number of documents and issue simple text queries similarly to a full-text search engine, but have them be context- and semantically aware. This problem is referred to Text Similarity Search. A user enters a short free-text query, and documents are ranked based on their similarity to the query. Text similarity can be useful in a variety of use cases such as Question-answering which we will consider here with the help of the Haystack library. In particular, we will explore two different methods to retrieve the most relevant documents for a given query: Elasticsearch, which both offers a database and similarity search, and Dense Passage Retriever (DPR) with the Faiss library.  
-
-The key components of the task are: 
-1. **FileConverter**: Extracts pure text from files (pdf, docx, pptx, html and many more).
-2. **PreProcessor**: Cleans and splits texts into smaller chunks.
-3. **DocumentStore**: Database storing the documents, metadata and vectors for our search. We will use Elasticsearch and FAISS. 
-4. **Retriever**: Fast algorithms that identify candidate documents for a given query from a large collection of documents. Retrievers narrow down the search space significantly and are therefore key for scalable QA. We will use a sparse method applying *Elasticsearch* and the state of the art dense method *Dense Passage Retrieval*.
-5. **Reader**: Neural network (e.g. BERT or RoBERTA) that reads through texts in detail to find an answer. The Reader takes multiple passages of text as input and returns top-n answers. Models are trained via FARM or Transformers on SQuAD like tasks. 
-6. **Finder**: Glues together a Retriever + Reader as a pipeline to provide an easy-to-use question answering interface.
+We will explore three different algorithms to retrieve, for a fiven query, the most relevant documents: Elasticsearch, Azure Cognitive Search and Dense Passage Retriever. The first two both offer a database as well as similarity search. We will use the Haystack library to implement similarity search with Elasticsearch and DPR. Making use of the Haystack terminology, we refer to those algorithms as *Retrievers*. 
 
 ## Data
-The data is the book *The deep learning with Keras*, in pdf form. We load the pdf, convert it into text and split the book into smaller chuncks which we collect in a dictionary:
+To be able to evaluate and compare the retrievers, we need labeled data. That is, different documents, questions concerning those documents and the corresponding answers. We use a subset of Natural Questions development set containing 50 documents. In particular, the datasets consists of two subsets. The first one contains 50 documents whoch hold different texts. Each document has its own unique id. The second subset contains 54 questions, the corresponding answers as well as the document id where the answer was retrieved from. 
+
+We will compare the Retrievers *Recall*, that is, the proportion of questions for which the correct document containing the answer is among the correct documents.
+
+```
+from haystack.preprocessor.utils import fetch_archive_from_http
+
+# Download evaluation data
+doc_dir = "./data/nq"
+s3_url = "https://s3.eu-central-1.amazonaws.com/deepset.ai-farm-qa/datasets/nq_dev_subset_v2.json.zip"
+fetch_archive_from_http(url=s3_url, output_dir=doc_dir)
+```
+
+## Elasticsearch
+We start Elasticsearch on the local machine instance using Docker (if Docker is not readily available in the environment, then manually download and execute Elasticsearch from source). Haystack finds answers to queries within the documents stored in a *DocumentStore*. 
+
+```
+from haystack.document_store.elasticsearch import ElasticsearchDocumentStore
+document_store = ElasticsearchDocumentStore(host="localhost", username="", password="", index="document",
+                                            create_index=False, embedding_field="emb",
+                                            embedding_dim=768, excluded_meta_data=["emb"])
+```
+We add the data to the database:
+```
+doc_index = "evaluation_docs"
+label_index = "evaluation_labels"
+
+document_store.add_eval_data(filename="../data/nq/nq_dev_subset_v2.json", doc_index=doc_index, label_index=label_index)
+```
+Initalize Retriever:
+```
+from haystack.retriever.sparse import ElasticsearchRetriever
+retriever = ElasticsearchRetriever(document_store=document_store)
+```
+Evaluate Retriever by making use of the *eval* method:
+```
+retriever_eval_results = retriever.eval(top_k=3, label_index=label_index, doc_index=doc_index)
+print("Retriever Recall:", retriever_eval_results["recall"])
+```
+For 51 out of 54 questions (94.44%), the answer was in the top-3 candidate passages selected by the retriever.
+**Retriever Recall: 0.9444**
+
+## DPR
+When applying DPR, the data is stored using *FAISS*. FAISS is a library for efficient similarity search on a cluster of dense vectors. The FAISSDocumentStore uses a SQL(SQLite in-memory be default) database under-the-hood to store the document text and other meta data. 
+
+DPR uses two Bert models, one to encode the documents and the other to encode the query, and both return vector representations. FAISS is chosen here since it is optimized vector storage.
+```
+from haystack.document_store.faiss import FAISSDocumentStore
+document_store = FAISSDocumentStore()
+```
+Unfortunately we can not directly apply the *add_eval_data* method on the FaissDocumentStore object, since it is only designed for the ElasticsearchDocumentStore obejct. But we can overcome this problem by making use of other methods contained in the Haystack library. The labeled data is in a json file. The following comment, i.e. function, separates the data concerned with the documents from the labels: 
+```
+from haystack.preprocessor.utils import eval_data_from_file
+docs, labels = eval_data_from_file(filename=filename)
+```
+*docs* contains the documents with their ids, while *labels* contains the questions and the corresponding answers. 
+
+Add *docs* to the FaissDocumentStore:
+```
+document_store.write_documents(docs, index=doc_index)
+```
+Initalize Retriever:
+```
+from haystack.retriever.dense import DensePassageRetriever
+dpr = DensePassageRetriever(document_store=document_store,
+                                  query_embedding_model="facebook/dpr-question_encoder-single-nq-base",
+                                  passage_embedding_model="facebook/dpr-ctx_encoder-single-nq-base",
+                                  max_seq_len_query=64,
+                                  max_seq_len_passage=256,
+                                  batch_size=16,
+                                  use_gpu=False,
+                                  embed_title=True,
+                                  use_fast_tokenizers=True)
+
+```
+One important thing here to note. After the DPR is initialized, we need to call update_embeddings() to iterate over all previously indexed documents and update their embedding representation. While this can be a time consuming operation (depending on corpus size), it only needs to be done once. At query time, we only need to embed the query and compare it the existing doc embeddings which is very fast.
+```
+document_store.update_embeddings(dpr, index=doc_index)
+```
+Add *labels* to the FaissDocumentStore:
+```
+document_store.write_labels(labels, index=label_index)
+```
+We can now evaluate with the *eval* method as before:
+```
+dpr_eval_results = dpr.eval(top_k=5, label_index=label_index, doc_index=doc_index)
+print("Retriever Recall:", dpr_eval_results["recall"])
+```
+For 52 out of 54 questions (96.30%), the answer was in the top-3 candidate passages selected by the retriever.
+**Retriever Recall: 0.9630**
+
+Slightly higher recall then with Elasticsearch.
+
+## Azure Cognitive Search
+Azure Search (AZ) is not part of the Haystack library, thus we implement it ourselfs. 
+
+Requirements:
+- Azure Account
+- Azure Cognitive Search Service
+
+### Processing the data
+Extract documents and labels from json file as before:
+```
+from haystack.preprocessor.utils import eval_data_from_file
+docs, labels = eval_data_from_file(filename=filename)
+```
+*docs* and *labels* are lists with entries which are *haystack.schema.Document* objects. We can convert each list entry to a dict using the *to_dict()*:
+```
+dicts=[]
+for i in range(len(docs)):
+    entry=docs[i].to_dict()
+    dicts.append({"Id": entry["id"], "text": entry["text"]})
+    
+dicts_labels=[]
+for i in range(len(labels)):
+    entry=labels[i].to_dict()
+    dicts_labels.append({"Id": entry["document_id"], "question": entry["question"]})
+```
+A question can have multiple answers. Since we only care about the corresponding document id's, we remove the duplicates using pandas DataFrame:
+```
+from utils import label_to_frame
+labels_frame=label_to_frame(dicts_labels=dicts_labels)
+```
+In Azure Search, create an index and load dicts into the index: 
+```
+from utils import create_idx, insert_docs
+
+index_name="evaluate"
+create_idx(idx_name=index_name)
+insert_docs(idx_name=index_name, docs=dicts)
+```
+Evaluate:
+```
+metric=eval(labels_frame=labels_frame, top_k=3)
+```
+For 52 out of 54 questions (96.30%), the answer was in the top-3 candidate passages selected by the retriever.
+**Retriever Recall: 0.9630**
+Same recall as for DPR. 
+
+## Summary 
+| Retriever    | Recall | 
+|:-------------|:------:|
+| Elastic      |  0.9444| 
+| DPR          |  0.9630| 
+| Azure Search |  0.9630| 
+
+## Question Answering 
+Once we have retrieved the most relevant documents to a given query, we can apply a so called *Reader* (using again Haystack terminology). The reader refers to a Neural network (e.g. BERT or RoBERTA) that reads through texts in detail to find an answer. It takes multiple passages of text as input and returns top-n answers. Haystack currently supports Readers based on the frameworks FARM and Transformers. 
+
+
+As data we the book *The deep learning with Keras*, which is in pdf form. We load the pdf, convert it into text and split the book into smaller chuncks which we collect in a dictionary:
 
 ```
 from haystack.preprocessor.utils import convert_files_to_dicts
@@ -26,77 +166,25 @@ print(dicts[0])
 ```
 {'text': '\x0cThe Deep Learning\nwith Keras Workshop\nSecond Edition', 'meta': {'name': '9781839217579-THE_DEEP_LEARNING_WITH_KERAS_WORKSHOP_SECOND_EDITION.pdf'}}
 ```
-
-## DocumentStore
-Haystack finds answers to queries within the documents stored in a DocumentStore. We will use both the ElasticsearchDocumentStore and FAISSDocumentStore implementations of DocumentStore. 
-
-### Elasticsearch Retriever
-We start Elasticsearch on the local machine instance using Docker (if Docker is not readily available in the environment (eg., in Colab notebooks), then manually download and execute Elasticsearch from source).
-
-Connect to Elasticsearch:
-```
-from haystack.document_store.elasticsearch import ElasticsearchDocumentStore
-document_store = ElasticsearchDocumentStore(host="localhost", username="", password="", index="document")
-```
-Write the dicts containing documents to the DB:
-```
-document_store.write_documents(dicts)
-```
-
-Initalize Retriever:
-```
-from haystack.retriever.sparse import ElasticsearchRetriever
-retriever = ElasticsearchRetriever(document_store=document_store)
-```
-
-### Dense Passage Retriever (DPR)
-When applying DPR we will store our data using FAISS. FAISS is a library for efficient similarity search on a cluster of dense vectors. The FAISSDocumentStore uses a SQL(SQLite in-memory be default) database under-the-hood to store the document text and other meta data. The vector embeddings of the text are indexed on a FAISS Index that later is queried for searching answers. 
-
-DPR uses two Bert models, one to encode the documents and the other to encode the query, and both return vector representations. FAISS is chosen here since it is optimized vector storage.
-
-```
-
-from haystack.document_store.faiss import FAISSDocumentStore
-
-document_store = FAISSDocumentStore()
-document_store.write_documents(dicts)
-```
-Initalize Retriever:
-```
-from haystack.retriever.dense import DensePassageRetriever
-retriever = DensePassageRetriever(document_store=document_store,
-                                  query_embedding_model="facebook/dpr-question_encoder-single-nq-base",
-                                  passage_embedding_model="facebook/dpr-ctx_encoder-single-nq-base",
-                                  max_seq_len_query=64,
-                                  max_seq_len_passage=256,
-                                  batch_size=16,
-                                  use_gpu=False,
-                                  embed_title=True,
-                                  use_fast_tokenizers=True)
-```
-One important thing here to note. After the DPR is initialized, we need to call *update_embeddings()* to iterate over all previously indexed documents and update their embedding representation. While this can be a time consuming operation (depending on corpus size), it only needs to be done once. At query time, we only need to embed the query and compare it the existing doc embeddings which is very fast.
-```
-document_store.update_embeddings(retriever)
-```
+We implement either Elasticsearch or DPR retriever as schown here above. 
 
 
-## Reader 
-A Reader scans the texts returned by retrievers in detail and extracts the k best answers. They are based on powerful, but slower deep learning models. 
-Haystack currently supports Readers based on the frameworks FARM and Transformers. 
+Initiate Reader:
 
 ```
 from haystack.reader.farm import FARMReader
 reader = FARMReader(model_name_or_path="deepset/roberta-base-squad2", use_gpu=False)
 ```
-## Finder
-The Finder sticks together reader and retriever in a pipeline to answer our actual questions.
+
+The *Finder* objects sticks together reader and retriever in a pipeline to answer our actual questions.
 
 ```
+from haystack.finder import Finder
 finder = Finder(reader, retriever)
 ```
 
-## Ask a question
-We will ask a couple of questions and compare the answers using the different retrievers.
+### Ask a question
+We will ask a couple of questions and compare the answers using Elasticsearch and DPR Retrievers. 
 
 Question: What is RNN?
 
@@ -358,11 +446,9 @@ DPR response:
                    'his',
         'score': 7.87277889251709}]
 ```
-## Evaluating 
-To be able to evaluate the questionan-answering systems and to compare the two different retrievers, we need labeled data. That is, different documents, questions concerning the documents and the corresponding answers. Here we use a subset of Natural Questions development set containing 50 documents. In particular, there are two datasets. The first one contains 50 documents whoch hold different texts. Each document has its own unique id. The second dataset contains questions about the documents, the document id which holds the answer and the answer itself. 
+### Evaluating Reader
+We apply the same labeled dataset as for the retrievers. 
 
-
-### Reader
 Reader Top-N-Accuracy is the proportion of predicted answers that match with their corresponding correct answer:
 ```
 Top-N-Accuracy: 0.6111
@@ -376,12 +462,5 @@ Reader F1-Score is the average overlap between the predicted answers and the cor
 Reader F1-Score: 0.3075
 ```
 
-### Retriever
-Retriever Recall is the proportion of questions for which the correct document containing the answer is among the correct documents. For DBR we had that for 52 out of 54 questions (96.30%), the answer was in the top-3 candidate passages selected by the retrievers. For Elasticsearch we had 51 out of 54 (94.44%). Retriever Mean Avg Precision rewards retrievers that give relevant documents a higher rank.
-
-| Retriever | Recall |  Mean Avg Precision |
-|:----------|:------:|:-------------------:|
-| Elastic   |  0.9444| 0.9259              |
-| DPR       |  0.9630| 0.9537              |
 
 
