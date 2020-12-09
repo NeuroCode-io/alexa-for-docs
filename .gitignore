@@ -2,3 +2,4 @@ poetry.lock
 mlruns 
 config 
 Azuresearch.ipynb 
+__pycache__
