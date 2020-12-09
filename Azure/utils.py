@@ -1,10 +1,11 @@
 from config import config
-
 import requests
 
 from azure.core.credentials import AzureKeyCredential
 from azure.search.documents.indexes import SearchIndexClient
 from azure.search.documents import SearchClient
+
+import pandas as pd 
 from azure.search.documents.indexes.models import (
     CorsOptions,
     SearchIndex,
@@ -68,3 +69,37 @@ def delete_index(idx_name):
     url = endpoint + "indexes" + "/" + idx_name + api_version
     response  = requests.delete(url, headers=headers)   
     print("index deleted:", response.ok)
+
+
+def label_to_frame(dicts_labels):
+    labels_id=[]
+    labels_q=[]
+    for i in range(len(dicts_labels)):
+        labels_id.append(dicts_labels[i]["Id"])
+        labels_q.append(dicts_labels[i]["question"]) 
+    labels_frame=pd.DataFrame(labels_id, columns=["Id"]) 
+    labels_frame["question"]=labels_q
+    return labels_frame.drop_duplicates()
+
+def eval(labels_frame,top_k):
+    correct_retrievals = 0
+    for i in range(len(labels_frame)): 
+        question = labels_frame["question"].iloc[i]
+        gold_id=labels_frame["Id"].iloc[i]
+        pred=find_text(query=question, idx_name=index_name, top_k=top_k)
+        
+        for j in range(len(pred)):
+            pred_id=pred[j]["Id"]
+            if gold_id == pred_id:
+                correct_retrievals += 1
+                break 
+            else:
+                continue
+    number_of_questions = len(labels_frame)
+    recall = correct_retrievals / number_of_questions
+    metrics={
+        "correct_retrievals": correct_retrievals,
+        "recall":recall,
+        "top_k": top_k
+    }
+    return metrics
