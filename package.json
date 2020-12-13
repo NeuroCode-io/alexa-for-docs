@@ -1,0 +1,29 @@
+{
+    "name": "alexa-for-docs",
+    "main": "index.ts",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "format": "prettier --write '**/*.{ts,js,css,json,md}'",
+        "compile": "tsc"
+    },
+    "devDependencies": {
+        "@types/isomorphic-fetch": "0.0.35",
+        "@types/node": "^10.17.48",
+        "prettier": "^2.2.1",
+        "typescript": "^4.1.2"
+    },
+    "dependencies": {
+        "@azure/search-documents": "^11.0.3",
+        "@azure/storage-blob": "^12.3.0",
+        "@pulumi/azure": "^3.33.2",
+        "@pulumi/pulumi": "^2.15.4",
+        "file-type": "^16.0.1",
+        "isomorphic-fetch": "^3.0.0",
+        "pdfjs-dist": "^2.6.347"
+    },
+    "prettier": {
+        "semi": false,
+        "singleQuote": true,
+        "printWidth": 120
+    }
+}

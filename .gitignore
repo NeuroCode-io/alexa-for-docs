@@ -1,5 +1,8 @@
-poetry.lock
 mlruns 
 config 
 Azuresearch.ipynb 
 Azure/__pycache__
+
+/bin/
+/node_modules/
+.env
