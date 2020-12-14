@@ -15,9 +15,11 @@ const shortLocation = location[config.require('deployLocation')]
 if (!shortLocation) throw new Error('ConfigError: Unknown location provided')
 
 const rgName = `${shortLocation}-${env}-${config.require('appName')}`
+const prefix = `${shortLocation}-${env}`
 
 export default {
   appName: config.require('appName'),
+  prefix,
   resourceGroupName: rgName,
   location: config.require('deployLocation'),
   searchSku: config.require('searchServiceSku'),

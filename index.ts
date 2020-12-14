@@ -17,7 +17,8 @@ const jsonProcessing = processedContainer.getEventFunction('json-process', {
   filterSuffix: '.json',
 })
 
-const serverlessApp = new azure.appservice.MultiCallbackFunctionApp(config.appName, {
+const serverlessApp = new azure.appservice.MultiCallbackFunctionApp(`${config.resourceGroupName}-app`, {
+  name: `${config.resourceGroupName}-app`,
   appSettings: {
     STORAGE_ACCOUNT_KEY: storageAccount.primaryAccessKey.apply((key) => key),
     STORAGE_ACCOUNT_NAME: storageAccount.name.apply((accountName) => accountName),
