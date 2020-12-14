@@ -2,7 +2,7 @@ mlruns
 config 
 Azuresearch.ipynb 
 __pycache__
-Azure/__pycache__
+
 
 /bin/
 /node_modules/
