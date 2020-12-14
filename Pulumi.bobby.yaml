@@ -1,0 +1,6 @@
+config:
+  alexa-for-docs:appName: alexa-for-docs
+  alexa-for-docs:deployLocation: northeurope
+  alexa-for-docs:searchServiceSku: basic
+  alexa-for-docs:slackWebHook:
+    secure: AAABAHjEWjFBgRNucKijyevOQRwoyvMHaG3q6/CukRnIjjft0JZNaRZ4N5xuxO3QOM4Zr0twHwW9HcCE3uXV6YgT+N0rbCz/i11pSpKpOGlIU2gLqUZlBPy5ciqM377nN83mJc0hFOcB+ABCRVP4
