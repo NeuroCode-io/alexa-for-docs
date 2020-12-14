@@ -1,18 +1,17 @@
 import config from '../../config'
 import * as azure from '@pulumi/azure'
-import * as fetch from 'isomorphic-fetch'
+import axios from 'axios'
 
 const getStack = (stack?: string) => `\`\`\`
   ${JSON.stringify(stack, null, 2)}
 \`\`\`
 `
 
-
 const reportError = (error: Error, ctx?: azure.storage.BlobContext) => {
   const logger = ctx?.log.error ?? console.error
   const webHook = process.env.SLACK_WEBHOOK
 
-  if (!webHook) throw new Error('App Settings missing')
+  if (!webHook) throw new Error('Slack webhook app setting missing')
 
   logger(`Error occured in ${config.appName}`)
 
@@ -24,14 +23,8 @@ const reportError = (error: Error, ctx?: azure.storage.BlobContext) => {
 
   ${stack}
   `
-  
-  const init = {
-    headers: { 'Content-Type': 'application/json' },
-    method: 'POST',
-    body: JSON.stringify({ text: message }),
-  }
 
-  return fetch(webHook, init)
+  return axios({ method: 'POST', url: webHook, data: { text: message } })
 }
 
 export { reportError }
