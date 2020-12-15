@@ -15,7 +15,7 @@
         "@azure/search-documents": "^11.0.3",
         "@azure/storage-blob": "^12.3.0",
         "@pulumi/azure": "^3.33.2",
-        "@pulumi/pulumi": "^2.15.4",
+        "@pulumi/pulumi": "^2.15.6",
         "axios": "^0.21.0",
         "file-type": "^16.0.1",
         "pdfjs-dist": "^2.6.347"
