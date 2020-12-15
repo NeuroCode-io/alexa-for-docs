@@ -1,5 +1,5 @@
 import * as azure from '@pulumi/azure'
-import { resourceGroup } from './resourceGroup'
+import { processingRg } from './resourceGroup'
 import { SearchIndexClient, AzureKeyCredential } from '@azure/search-documents'
 import config from '../config'
 
@@ -47,7 +47,7 @@ const createIndex = async (endpoint: string, apiKey: string) => {
 
 const search = new azure.search.Service(`${config.prefix}-search`, {
   name: `${config.prefix}-search`,
-  resourceGroupName: resourceGroup.name,
+  resourceGroupName: processingRg.name,
   sku: config.searchSku,
 })
 

@@ -229,5 +229,5 @@ def predict_qa(session, tokenizer, examples_dict):
             answers = sorted(answers, key=lambda x: x["score"], reverse=True)[:1]
             all_answers += answers
         if len(all_answers) == 1:
-            return all_answers[0]
-        return all_answers
+            return all_answers[0].replace("\n", " ").strip()
+        return all_answers.replace("\n", " ").strip()

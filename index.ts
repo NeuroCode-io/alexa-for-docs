@@ -4,7 +4,7 @@ import { onPDFupload } from './processing/onBlobUpload'
 import { onJsonUpload } from './processing/onJsonUpload'
 import { search } from './infrastructure/searchService'
 import config from './config'
-import { resourceGroup } from './infrastructure/resourceGroup'
+import { processingRg } from './infrastructure/resourceGroup'
 import { pythonApp } from './infrastructure/inference'
 
 const pdfUpload = storageContainer.getEventFunction('pdf-upload', {
@@ -27,7 +27,7 @@ const serverlessApp = new azure.appservice.MultiCallbackFunctionApp(`${config.re
     SEARCH_SERVICE_NAME: search.name.apply((name) => name),
     SLACK_WEBHOOK: config.slackHook.apply((secret) => secret),
   },
-  resourceGroupName: resourceGroup.name,
+  resourceGroupName: processingRg.name,
   functions: [pdfUpload, jsonProcessing],
 })
 

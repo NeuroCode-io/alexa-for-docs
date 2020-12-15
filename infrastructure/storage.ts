@@ -1,12 +1,12 @@
 import * as azure from '@pulumi/azure'
-import { resourceGroup } from './resourceGroup'
+import { processingRg } from './resourceGroup'
 import config from '../config'
 
 const accountName = config.resourceGroupName.replace(/-/g, '')
 
 const storageAccount = new azure.storage.Account(accountName, {
   name: accountName,
-  resourceGroupName: resourceGroup.name,
+  resourceGroupName: processingRg.name,
   accountReplicationType: 'LRS',
   accountTier: 'Standard',
 })

@@ -1,18 +1,23 @@
 import * as azure from '@pulumi/azure'
 import * as pulumi from '@pulumi/pulumi'
-import { resourceGroup } from './resourceGroup'
+import config from '../config'
+import { questionAnsweringRg } from './resourceGroup'
 
-const linuxPlan = new azure.appservice.Plan('linux-asp', {
-  resourceGroupName: resourceGroup.name,
+const name = `${config.resourceGroupName}-qna`
+
+const linuxPlan = new azure.appservice.Plan(name, {
+  name,
+  resourceGroupName: questionAnsweringRg.name,
   kind: 'Linux',
   sku: { tier: 'Dynamic', size: 'Y1' },
   reserved: true,
 })
 
-const pythonApp = new azure.appservice.ArchiveFunctionApp('http-python', {
-  resourceGroup: resourceGroup,
+const pythonApp = new azure.appservice.ArchiveFunctionApp(name, {
+  name,
+  resourceGroup: questionAnsweringRg,
   plan: linuxPlan,
-  archive: new pulumi.asset.FileArchive('./python'),
+  archive: new pulumi.asset.FileArchive('./python/question_answering'),
   appSettings: {
     runtime: 'python',
   },
