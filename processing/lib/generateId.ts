@@ -31,9 +31,9 @@ const generateId = () => {
   return buffer.toString('hex')
 }
 
-function getRandomString(length=24) {
-  var chars = 'abcdefghijklmnopqrstuvwxyz0123456789'
-  var result = ''
+const getRandomString = (length = 24) => {
+  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789'
+  let result = ''
 
   while (length > 0) {
     result += chars.charAt(Math.floor(Math.random() * chars.length))

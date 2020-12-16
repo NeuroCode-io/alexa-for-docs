@@ -5,6 +5,7 @@ import * as path from 'path'
 import { BlobServiceClient, StorageSharedKeyCredential } from '@azure/storage-blob'
 import { getRandomString } from './lib/generateId'
 import { reportError } from './lib/slack'
+import { ProcessedJson } from './types'
 
 const maxSizeMB = 30
 
@@ -38,7 +39,7 @@ const onPDFupload = async (ctx: azure.storage.BlobContext, arg: Buffer) => {
       return
     }
 
-    const result = []
+    let result: ProcessedJson[] = []
     const fileName = path.basename(filePath)
     for await (const obj of getText(arg)) {
       result.push({

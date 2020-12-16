@@ -5,7 +5,6 @@ import { onJsonUpload } from './processing/onJsonUpload'
 import { search } from './infrastructure/searchService'
 import config from './config'
 import { processingRg } from './infrastructure/resourceGroup'
-import { pythonApp } from './infrastructure/inference'
 
 const pdfUpload = storageContainer.getEventFunction('pdf-upload', {
   callback: onPDFupload,
@@ -32,4 +31,3 @@ const serverlessApp = new azure.appservice.MultiCallbackFunctionApp(`${config.re
 })
 
 export const httpEndpoint = serverlessApp.endpoint.apply((endpoint) => `${endpoint}`)
-export const inferenceEndpoint = pythonApp.endpoint.apply((endpoint) => `${endpoint}`)

@@ -2,6 +2,9 @@ import * as azure from '@pulumi/azure'
 import { SearchClient, AzureKeyCredential } from '@azure/search-documents'
 import { reportError } from './lib/slack'
 import { chunk } from './lib/array'
+import { ProcessedJson } from './types'
+
+const clean = (data: ProcessedJson[]) => data.map((d) => ({...d, content: d.content.replace(/\t/g, ' ')}))
 
 const onJsonUpload = async (ctx: azure.storage.BlobContext, arg: Buffer) => {
   try {
@@ -18,13 +21,21 @@ const onJsonUpload = async (ctx: azure.storage.BlobContext, arg: Buffer) => {
       new AzureKeyCredential(apiKey)
     )
 
-    //@ts-ignore
-    const { result } = JSON.parse(arg)
+    let data = null
+    try {
+      //@ts-ignore
+      const { result } = JSON.parse(arg)
+      data = result as ProcessedJson[]
+    } catch (err) {
+      //will be dealt with on line 34
+      ctx.log.warn('Corrupt file')
+    }
 
-    if (!Array.isArray(result)) throw new Error('Parsing error. Received corrupted JSON')
+    if (!Array.isArray(data)) throw new Error('Parsing error. Received corrupted JSON')
 
-    const chunks = chunk(result, 500)
-    for (const c of chunks) {
+    const chunkedDocs = chunk(clean(data), 500)
+
+    for (const c of chunkedDocs) {
       await client.uploadDocuments(c)
     }
 
