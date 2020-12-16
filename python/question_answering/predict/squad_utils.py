@@ -203,15 +203,15 @@ def predict_qa(session, tokenizer, examples_dict):
                 # - then we convert this word in a character span with `word_to_chars`
                 answers += [
                     {
-                        "score": score.item(),
-                        "start": enc.word_to_chars(
-                            enc.token_to_word(s),
-                            sequence_index=1 if question_first else 0,
-                        )[0],
-                        "end": enc.word_to_chars(
-                            enc.token_to_word(e),
-                            sequence_index=1 if question_first else 0,
-                        )[1],
+                        "score": round(score.item(), 4),
+                        # "start": enc.word_to_chars(
+                        #     enc.token_to_word(s),
+                        #     sequence_index=1 if question_first else 0,
+                        # )[0],
+                        # "end": enc.word_to_chars(
+                        #     enc.token_to_word(e),
+                        #     sequence_index=1 if question_first else 0,
+                        # )[1],
                         "answer": example.context_text[
                             enc.word_to_chars(
                                 enc.token_to_word(s),
@@ -222,12 +222,12 @@ def predict_qa(session, tokenizer, examples_dict):
                             )[
                                 1
                             ]
-                        ],
+                        ].replace("\n", " ").strip(),
                     }
                     for s, e, score in zip(starts, ends, scores)
                 ]
             answers = sorted(answers, key=lambda x: x["score"], reverse=True)[:1]
             all_answers += answers
         if len(all_answers) == 1:
-            return all_answers[0]["answer"].replace("\n", " ").strip()
-        return all_answers["answer"].replace("\n", " ").strip()
+            return all_answers[0]
+        return all_answers
