@@ -1,24 +1,37 @@
 import * as azure from '@pulumi/azure'
 import { SearchClient, AzureKeyCredential } from '@azure/search-documents'
 import { reportError } from './lib/slack'
+import { AzureTable } from './lib/azureTable'
 import { chunk } from './lib/array'
+import { keysFromFileName, missing } from './lib/utils'
 import { ProcessedJson } from './types'
 
-const clean = (data: ProcessedJson[]) => data.map((d) => ({...d, content: d.content.replace(/\t/g, ' ')}))
+const clean = (data: ProcessedJson[]) => data.map((d) => ({ ...d, content: d.content.replace(/\t/g, ' ') }))
 
 const onJsonUpload = async (ctx: azure.storage.BlobContext, arg: Buffer) => {
   try {
-    const apiKey = process.env.SEARCH_SERIVCE_KEY
-    const searchServiceName = process.env.SEARCH_SERVICE_NAME
+    const opts = {
+      accountName: process.env.STORAGE_ACCOUNT_NAME ?? missing('STORAGE_ACCOUNT_NAME'),
+      accountKey: process.env.STORAGE_ACCOUNT_KEY ?? missing('STORAGE_ACCOUNT_KEY'),
+      apiKey: process.env.SEARCH_SERIVCE_KEY ?? missing('SEARCH_SERIVCE_KEY'),
+      searchServiceName: process.env.SEARCH_SERVICE_NAME ?? missing('SEARCH_SERVICE_NAME'),
+    }
 
-    if (!apiKey || !searchServiceName) throw new Error('App Settings missing')
+    const tableService = new AzureTable({
+      accountKey: opts.accountKey,
+      accountName: opts.accountName,
+      tableName: 'statestore',
+    })
+    const { fileName, partitionKey, rowKey } = keysFromFileName(ctx.bindingData.blobTrigger)
 
-    ctx.log.info(`Processing ${ctx.bindingData.blobTrigger}`)
+    await tableService.updateState(partitionKey, rowKey, 'pdf-knowledge-source-processed', 'json-file-uploaded')
+
+    ctx.log.info(`Processing ${fileName}`)
 
     const client = new SearchClient(
-      `https://${searchServiceName}.search.windows.net`,
+      `https://${opts.searchServiceName}.search.windows.net`,
       'neurocode-uploads',
-      new AzureKeyCredential(apiKey)
+      new AzureKeyCredential(opts.apiKey)
     )
 
     let data = null
@@ -27,7 +40,6 @@ const onJsonUpload = async (ctx: azure.storage.BlobContext, arg: Buffer) => {
       const { result } = JSON.parse(arg)
       data = result as ProcessedJson[]
     } catch (err) {
-      //will be dealt with on line 34
       ctx.log.warn('Corrupt file')
     }
 
@@ -39,7 +51,9 @@ const onJsonUpload = async (ctx: azure.storage.BlobContext, arg: Buffer) => {
       await client.uploadDocuments(c)
     }
 
-    ctx.log.info(`Processing ${ctx.bindingData.blobTrigger} done`)
+    await tableService.updateState(partitionKey, rowKey, 'json-file-uploaded', 'json-file-processed')
+
+    ctx.log.info(`Processing ${fileName} done`)
   } catch (error) {
     await reportError(error)
   }

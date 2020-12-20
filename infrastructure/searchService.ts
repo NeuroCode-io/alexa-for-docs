@@ -1,6 +1,6 @@
 import * as azure from '@pulumi/azure'
 import { processingRg } from './resourceGroup'
-import { SearchIndexClient, AzureKeyCredential } from '@azure/search-documents'
+import { SearchIndexClient, AzureKeyCredential, BM25Similarity } from '@azure/search-documents'
 import config from '../config'
 
 const handleError = (err: Error) => {
@@ -15,6 +15,12 @@ const createIndex = async (endpoint: string, apiKey: string) => {
   await client
     .createOrUpdateIndex({
       name: 'neurocode-uploads',
+      // https://docs.microsoft.com/en-us/azure/search/index-ranking-similarity
+      similarity: {
+        odatatype: '#Microsoft.Azure.Search.BM25Similarity',
+        k1: 1.2,
+        b: 0.75
+      },
       fields: [
         {
           type: 'Edm.String',

@@ -31,15 +31,16 @@ const generateId = () => {
   return buffer.toString('hex')
 }
 
-const getRandomString = (length = 24) => {
+const getRandomString = (length = 14) => {
+  const first = randomBytes(length / 2).toString('hex')
   const chars = 'abcdefghijklmnopqrstuvwxyz0123456789'
-  let result = ''
+  let second = ''
 
   while (length > 0) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length))
+    second += chars.charAt(Math.floor(Math.random() * chars.length))
     length--
   }
-  return result
+  return `${first}${second}`
 }
 
 export { generateId, getRandomString }
