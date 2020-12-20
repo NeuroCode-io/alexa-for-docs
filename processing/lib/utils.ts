@@ -13,7 +13,7 @@ const isSentence = (sentence: string) => {
 
 const keysFromFileName = (filePath: string) => {
   const fileName = path.basename(filePath)
-  const [partitionKey, ...rest] = path.parse(fileName).name.split('-')
+  const [partitionKey, ...rest] = fileName.split('-')
   const rowKey = rest.join('-')
 
   return {
