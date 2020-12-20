@@ -11,6 +11,7 @@
         "pretty": true,
         "noFallthroughCasesInSwitch": true,
         "noImplicitReturns": true,
+        "noImplicitAny": true,
         "forceConsistentCasingInFileNames": true
     },
     "files": [
