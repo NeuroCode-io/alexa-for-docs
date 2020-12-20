@@ -34,7 +34,6 @@ type Entity = {
   etag: string
 }
 
-
 export class AzureTable {
   private readonly tableName: string
   private readonly service: TableService
@@ -51,33 +50,29 @@ export class AzureTable {
   }
 
   async retrieveEntity(partitionKey: string, rowKey: string) {
-    return new Promise<Entity>((resolve, reject) => {
+    return new Promise<AzureEntityOutput>((resolve, reject) => {
       this.service.retrieveEntity(this.tableName, partitionKey, rowKey, (error, result: AzureEntityOutput) => {
         if (error) return reject(error)
 
-        const {
-          PartitionKey: { _: partitionKey },
-          RowKey: { _: rowKey },
-          state: { _: state },
-          insertedAt: { _: insertedAt },
-          updatedAt: { _: updatedAt },
-        } = result
-        const etag = result['.metadata'].etag
-
-        resolve({ partitionKey, rowKey, state, insertedAt, updatedAt, etag })
+        resolve(result)
       })
     })
   }
 
   async updateState(partitionKey: string, rowKey: string, oldState: ProcessingState, newState: ProcessingState) {
     const oldEntity = await this.retrieveEntity(partitionKey, rowKey)
-    if (oldEntity.state !== oldState) {
+    const { state, updatedAt, ...rest } = oldEntity
+
+    if (state['_'] !== oldState) {
       throw new Error(`IllegalState: Received ${oldEntity.state} but wanted ${oldState}`)
     }
 
     return new Promise((resolve, reject) => {
-      const dt = new Date()
-      const newEntity = { state: newState, updatedAt: dt.toISOString(), '.metadata': { etag: oldEntity.etag } }
+      const newEntity = {
+        ...rest,
+        state: { ...state, _: newState },
+        updatedAt: { ...updatedAt, _: new Date().toISOString() },
+      }
 
       this.service.replaceEntity(this.tableName, newEntity, (error) => {
         if (error) return reject(error)
