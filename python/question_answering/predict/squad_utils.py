@@ -8,9 +8,9 @@ from transformers.tokenization_utils_base import PaddingStrategy
 
 
 padding = "longest"
-max_seq_len = 384
+max_seq_len = 512
 doc_stride = 128
-max_answer_len = 20
+max_answer_len = 60
 max_question_len = 64
 
 
