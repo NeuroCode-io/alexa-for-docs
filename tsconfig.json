@@ -6,6 +6,7 @@
         "target": "ES2019",
         "lib": ["ES2019"],
         "module": "commonjs",
+        "strictNullChecks": true,
         "moduleResolution": "node",
         "sourceMap": true,
         "experimentalDecorators": true,

@@ -49,9 +49,9 @@ export class AzureTable {
     )
   }
 
-  async retrieveEntity(partitionKey: string, rowKey: string) {
-    return new Promise<AzureEntityOutput>((resolve, reject) => {
-      this.service.retrieveEntity(this.tableName, partitionKey, rowKey, (error, result: AzureEntityOutput) => {
+  async retrieveEntity<T>(partitionKey: string, rowKey: string): Promise<T> {
+    return new Promise((resolve, reject) => {
+      this.service.retrieveEntity(this.tableName, partitionKey, rowKey, (error, result: T) => {
         if (error) return reject(error)
 
         resolve(result)
@@ -60,7 +60,7 @@ export class AzureTable {
   }
 
   async updateState(partitionKey: string, rowKey: string, oldState: ProcessingState, newState: ProcessingState) {
-    const oldEntity = await this.retrieveEntity(partitionKey, rowKey)
+    const oldEntity = await this.retrieveEntity<AzureEntityOutput>(partitionKey, rowKey)
     const { state, updatedAt, ...rest } = oldEntity
 
     if (state['_'] !== oldState) {

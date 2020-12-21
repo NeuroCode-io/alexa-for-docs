@@ -63,7 +63,7 @@ const onPDFupload = async (ctx: azure.storage.BlobContext, arg: Buffer) => {
     }
 
     const containerClient = blobServiceClient.getContainerClient(opts.containerName)
-    const blobClient = containerClient.getBlockBlobClient(fileName.replace('pdf', 'json'))
+    const blobClient = containerClient.getBlockBlobClient(`${rowKey}.json`)
     const content = Buffer.from(JSON.stringify({ result }))
 
     await blobClient.upload(content, Buffer.byteLength(content))

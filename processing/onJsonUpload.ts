@@ -36,8 +36,7 @@ const onJsonUpload = async (ctx: azure.storage.BlobContext, arg: Buffer) => {
 
     let data = null
     try {
-      //@ts-ignore
-      const { result } = JSON.parse(arg)
+      const { result } = JSON.parse(arg.toString())
       data = result as ProcessedJson[]
     } catch (err) {
       ctx.log.warn('Corrupt file')
