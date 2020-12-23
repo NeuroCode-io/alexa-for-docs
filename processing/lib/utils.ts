@@ -12,12 +12,12 @@ const isSentence = (sentence: string) => {
 }
 
 const keysFromFileName = (filePath: string) => {
-  const fileName = path.basename(filePath)
-  const [partitionKey, ...rest] = fileName.split('-')
+  const { name, ext } = path.parse(filePath)
+  const [partitionKey, ...rest] = name.split('-')
   const rowKey = rest.join('-')
 
   return {
-    partitionKey, rowKey, fileName
+    partitionKey, rowKey, fileName: name + ext
   }
 }
 

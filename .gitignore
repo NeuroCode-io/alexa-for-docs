@@ -12,3 +12,4 @@ onnx_model/
 *.onnx
 .venv
 coverage
+*.env
