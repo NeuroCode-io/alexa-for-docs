@@ -1,4 +1,4 @@
-import { isSentence, keysFromFileName, missing } from './utils'
+import { cleanText, isSentence, keysFromFileName, missing } from './utils'
 
 describe('utils', () => {
   describe('isSentence', () => {
@@ -34,6 +34,30 @@ describe('utils', () => {
   describe('missing', () => {
     it('should always thorw with key input in error message', () => {
       expect(() => missing('foo')).toThrowError('foo app setting missing')
+    })
+  })
+
+  describe('cleanText', () => {
+    const testCases = [
+      [
+        'Introduction\tto\tCSS CSS \t(an\tabbreviation\tof\t Cascading\tStyle\tSheets )\tis\tthe\tlanguage\tthat\twe\tuse\tto\tstyle\tan HTML\tfile,\tand\ttell\tthe\tbrowser\thow\tshould\tit\trender\tthe\telements\ton\tthe\tpage.',
+        'Introduction to CSS CSS (an abbreviation of Cascading Style Sheets ) is the language that we use to style an HTML file, and tell the browser how should it render the elements on the page.',
+      ],
+      [
+        'Test  sentence',
+        'Test sentence'
+      ],
+      [
+        ' Test sentence ',
+        'Test sentence'
+      ],
+      [
+        '  Test  sentence  \n is here',
+        'Test sentence is here'
+      ],
+    ]
+    it.each(testCases)('should clean the text', (dirty, clean) => {
+      expect(cleanText(dirty)).toEqual(clean)
     })
   })
 })

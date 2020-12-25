@@ -3,10 +3,10 @@ import { SearchClient, AzureKeyCredential } from '@azure/search-documents'
 import { reportError } from './lib/slack'
 import { AzureTable } from './lib/azureTable'
 import { chunk } from './lib/array'
-import { keysFromFileName, missing } from './lib/utils'
+import { keysFromFileName, missing, cleanText } from './lib/utils'
 import { ProcessedJson } from './types'
 
-const clean = (data: ProcessedJson[]) => data.map((d) => ({ ...d, content: d.content.replace(/\t/g, ' ') }))
+const clean = (data: ProcessedJson[]) => data.map((d) => ({ ...d, content: cleanText(d.content) }))
 
 const onJsonUpload = async (ctx: azure.storage.BlobContext, arg: Buffer) => {
   try {

@@ -11,7 +11,7 @@ async function* getText(data: Buffer) {
     const page = await pdf.getPage(i)
     const text = await page.getTextContent()
 
-    yield { page: i, content: text.items.map((item: any) => item.str).join('') }
+    yield { page: i, content: text.items.map((item: any) => item.str).join(' ') }
   }
 }
 
