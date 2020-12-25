@@ -1,3 +1,4 @@
+import * as fs from 'fs'
 import * as azure from '@pulumi/azure'
 import { storageContainer, processedContainer, storageAccount } from './infrastructure/storage'
 import { onPDFupload } from './processing/onBlobUpload'
@@ -14,6 +15,19 @@ const pdfUpload = storageContainer.getEventFunction('pdf-upload', {
 const jsonProcessing = processedContainer.getEventFunction('json-process', {
   callback: onJsonUpload,
   filterSuffix: '.json',
+})
+
+const buildTestEnvFile = (accountKey: string, accountName: string) =>
+  config.prefix.includes('bob')
+    ? null
+    : `ACCOUNT_NAME=${accountName}
+ACCOUNT_KEY=${accountKey}
+`
+
+storageAccount.primaryAccessKey.apply((accountKey) => {
+  storageAccount.name.apply((accountName) => {
+    fs.writeFileSync('test.env', buildTestEnvFile(accountKey, accountName))
+  })
 })
 
 const serverlessApp = new azure.appservice.MultiCallbackFunctionApp(`${config.resourceGroupName}-app`, {
