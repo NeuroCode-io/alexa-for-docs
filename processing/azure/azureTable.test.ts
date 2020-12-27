@@ -9,8 +9,8 @@ describe('azureTable', () => {
   const dt = new Date()
   const testTable = new AzureTable({
     tableName: 'statestore',
-    accountKey: process.env.ACCOUNT_KEY ?? '',
-    accountName: process.env.ACCOUNT_NAME ?? '',
+    accountKey: process.env.STORAGE_ACCOUNT_KEY ?? '',
+    accountName: process.env.STORAGE_ACCOUNT_NAME ?? '',
   })
 
   beforeAll(async () => {
@@ -51,8 +51,8 @@ describe('azureTable', () => {
     await testTable.updateState(
       testParitionKey,
       testRowKey,
-      'pdf-knowledge-source-requested',
-      'pdf-knowledge-source-uploaded'
+      'pdf-knowledge-source-uploaded',
+      'pdf-knowledge-source-requested'
     )
   })
 

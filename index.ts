@@ -17,16 +17,29 @@ const jsonProcessing = processedContainer.getEventFunction('json-process', {
   filterSuffix: '.json',
 })
 
-const buildTestEnvFile = (accountKey: string, accountName: string) =>
+const buildTestEnvFile = (envs: any) =>
   config.prefix.includes('bob')
     ? null
-    : `ACCOUNT_NAME=${accountName}
-ACCOUNT_KEY=${accountKey}
+    : `STORAGE_ACCOUNT_NAME=${envs.accountName}
+STORAGE_ACCOUNT_KEY=${envs.accountKey}
+STORAGE_CONTAINER_NAME=${envs.containerName}
+SEARCH_SERIVCE_KEY=${envs.searchApiKey}
+SEARCH_SERVICE_NAME=${envs.searchServiceName}
+SEARCH_SERIVCE_INDEX=${config.searchServiceIndex}
 `
 
 storageAccount.primaryAccessKey.apply((accountKey) => {
   storageAccount.name.apply((accountName) => {
-    fs.writeFileSync('test.env', buildTestEnvFile(accountKey, accountName))
+    processedContainer.name.apply((containerName) => {
+      search.secondaryKey.apply((searchApiKey) => {
+        search.name.apply((searchServiceName) => {
+          fs.writeFileSync(
+            'test.env',
+            buildTestEnvFile({ accountKey, accountName, containerName, searchApiKey, searchServiceName })
+          )
+        })
+      })
+    })
   })
 })
 
@@ -39,6 +52,7 @@ const serverlessApp = new azure.appservice.MultiCallbackFunctionApp(`${config.re
     SEARCH_SERIVCE_KEY: search.secondaryKey.apply((apiKey) => apiKey),
     SEARCH_SERVICE_NAME: search.name.apply((name) => name),
     SLACK_WEBHOOK: config.slackHook.apply((secret) => secret),
+    SEARCH_SERIVCE_INDEX: config.searchServiceIndex,
   },
   resourceGroupName: processingRg.name,
   functions: [pdfUpload, jsonProcessing],

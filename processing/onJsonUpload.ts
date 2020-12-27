@@ -1,38 +1,22 @@
 import * as azure from '@pulumi/azure'
-import { SearchClient, AzureKeyCredential } from '@azure/search-documents'
 import { reportError } from './lib/slack'
-import { AzureTable } from './lib/azureTable'
-import { chunk } from './lib/array'
-import { keysFromFileName, missing, cleanText } from './lib/utils'
+import { keysFromFileName } from './lib/utils'
+import { StateStore } from './state'
+import { saveDocuments } from './azure/searchService'
 import { ProcessedJson } from './types'
+import { cleanText } from './lib/utils'
 
 const clean = (data: ProcessedJson[]) => data.map((d) => ({ ...d, content: cleanText(d.content) }))
 
 const onJsonUpload = async (ctx: azure.storage.BlobContext, arg: Buffer) => {
+  let st = undefined
+
   try {
-    const opts = {
-      accountName: process.env.STORAGE_ACCOUNT_NAME ?? missing('STORAGE_ACCOUNT_NAME'),
-      accountKey: process.env.STORAGE_ACCOUNT_KEY ?? missing('STORAGE_ACCOUNT_KEY'),
-      apiKey: process.env.SEARCH_SERIVCE_KEY ?? missing('SEARCH_SERIVCE_KEY'),
-      searchServiceName: process.env.SEARCH_SERVICE_NAME ?? missing('SEARCH_SERVICE_NAME'),
-    }
-
-    const tableService = new AzureTable({
-      accountKey: opts.accountKey,
-      accountName: opts.accountName,
-      tableName: 'statestore',
-    })
     const { fileName, partitionKey, rowKey } = keysFromFileName(ctx.bindingData.blobTrigger)
-
-    await tableService.updateState(partitionKey, rowKey, 'pdf-knowledge-source-processed', 'json-file-uploaded')
+    st = new StateStore(partitionKey, rowKey)
+    await st.jsonFileUploaded()
 
     ctx.log.info(`Processing ${fileName}`)
-
-    const client = new SearchClient(
-      `https://${opts.searchServiceName}.search.windows.net`,
-      'neurocode-uploads',
-      new AzureKeyCredential(opts.apiKey)
-    )
 
     let data = null
     try {
@@ -44,17 +28,12 @@ const onJsonUpload = async (ctx: azure.storage.BlobContext, arg: Buffer) => {
 
     if (!Array.isArray(data)) throw new Error('Parsing error. Received corrupted JSON')
 
-    const chunkedDocs = chunk(clean(data), 500)
-
-    for (const c of chunkedDocs) {
-      await client.uploadDocuments(c)
-    }
-
-    await tableService.updateState(partitionKey, rowKey, 'json-file-uploaded', 'json-file-processed')
+    await saveDocuments(clean(data))
+    await st.finished()
 
     ctx.log.info(`Processing ${fileName} done`)
   } catch (error) {
-    await reportError(error)
+    await Promise.all([reportError(error), st?.internalError()])
   }
 }
 

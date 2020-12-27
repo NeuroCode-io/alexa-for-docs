@@ -114,13 +114,13 @@ export class AzureTable {
   async updateState(
     partitionKey: string,
     rowKey: string,
-    oldState: ProcessingState,
-    newState: ProcessingState
+    newState: ProcessingState,
+    oldState?: ProcessingState
   ): Promise<void> {
     const oldEntity = await this.retrieveEntity<AzureTableEntity>(partitionKey, rowKey)
     const { state, updatedAt, ...rest } = oldEntity
 
-    if (state['_'] !== oldState) {
+    if (oldState && state['_'] !== oldState) {
       throw new Error(`IllegalState: Received ${state['_']} but wanted ${oldState}`)
     }
 
