@@ -17,6 +17,7 @@ if (!shortLocation) throw new Error('ConfigError: Unknown location provided')
 const rgName = `${shortLocation}-${env}-${config.require('appName')}`
 const prefix = `${shortLocation}-${env}`
 const searchServiceIndex = 'neurocode-uploads'
+const tableName = 'statestore'
 
 export default {
   appName: config.require('appName'),
@@ -25,5 +26,6 @@ export default {
   location: config.require('deployLocation'),
   searchSku: config.require('searchServiceSku'),
   slackHook: config.requireSecret('slackWebHook').apply((s) => s),
-  searchServiceIndex
+  searchServiceIndex,
+  tableName
 }

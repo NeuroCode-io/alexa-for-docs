@@ -14,7 +14,7 @@ class StateStore {
     this.tableService = new AzureTable({
       accountKey: opts.accountKey,
       accountName: opts.accountName,
-      tableName: 'statestore',
+      tableName: opts.tableName,
     })
   }
 

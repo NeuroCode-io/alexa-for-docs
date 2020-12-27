@@ -18,7 +18,7 @@ const jsonProcessing = processedContainer.getEventFunction('json-process', {
 })
 
 const buildTestEnvFile = (envs: any) =>
-  config.prefix.includes('bob')
+  config.prefix.includes('prod')
     ? null
     : `STORAGE_ACCOUNT_NAME=${envs.accountName}
 STORAGE_ACCOUNT_KEY=${envs.accountKey}
@@ -26,6 +26,7 @@ STORAGE_CONTAINER_NAME=${envs.containerName}
 SEARCH_SERIVCE_KEY=${envs.searchApiKey}
 SEARCH_SERVICE_NAME=${envs.searchServiceName}
 SEARCH_SERIVCE_INDEX=${config.searchServiceIndex}
+TABLE_NAME=${config.tableName}
 `
 
 storageAccount.primaryAccessKey.apply((accountKey) => {
@@ -53,6 +54,7 @@ const serverlessApp = new azure.appservice.MultiCallbackFunctionApp(`${config.re
     SEARCH_SERVICE_NAME: search.name.apply((name) => name),
     SLACK_WEBHOOK: config.slackHook.apply((secret) => secret),
     SEARCH_SERIVCE_INDEX: config.searchServiceIndex,
+    TABLE_NAME: config.tableName
   },
   resourceGroupName: processingRg.name,
   functions: [pdfUpload, jsonProcessing],

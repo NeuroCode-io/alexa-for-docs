@@ -8,7 +8,7 @@ describe('azureTable', () => {
   const testRowKey = 'book'
   const dt = new Date()
   const testTable = new AzureTable({
-    tableName: 'statestore',
+    tableName: process.env.TABLE_NAME ?? '',
     accountKey: process.env.STORAGE_ACCOUNT_KEY ?? '',
     accountName: process.env.STORAGE_ACCOUNT_NAME ?? '',
   })

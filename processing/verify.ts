@@ -8,6 +8,7 @@ const settings = () => ({
   searchApiKey: process.env.SEARCH_SERIVCE_KEY ?? missing('SEARCH_SERIVCE_KEY'),
   searchIndex: process.env.SEARCH_SERIVCE_INDEX ?? missing('SEARCH_SERIVCE_INDEX'),
   searchServiceName: process.env.SEARCH_SERVICE_NAME ?? missing('SEARCH_SERVICE_NAME'),
+  tableName: process.env.TABLE_NAME ?? missing('TABLE_NAME')
 })
 
 const isLargeSize = (buf: Buffer) => {
