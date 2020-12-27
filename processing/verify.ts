@@ -8,7 +8,7 @@ const settings = () => ({
   searchApiKey: process.env.SEARCH_SERIVCE_KEY ?? missing('SEARCH_SERIVCE_KEY'),
   searchIndex: process.env.SEARCH_SERIVCE_INDEX ?? missing('SEARCH_SERIVCE_INDEX'),
   searchServiceName: process.env.SEARCH_SERVICE_NAME ?? missing('SEARCH_SERVICE_NAME'),
-  tableName: process.env.TABLE_NAME ?? missing('TABLE_NAME')
+  tableName: process.env.TABLE_NAME ?? missing('TABLE_NAME'),
 })
 
 const isLargeSize = (buf: Buffer) => {
@@ -31,4 +31,13 @@ const isPDFfle = async (buf: Buffer) => {
   return true
 }
 
-export { settings, isLargeSize, isPDFfle }
+const verifyKeys = (partitionKey: string, rowKey: string) => {
+  if (!Number.isFinite(+partitionKey)) {
+    throw new Error('Wrong partitionKey format')
+  }
+  if (rowKey.includes('.pdf') || rowKey.includes('.json')) {
+    throw new Error('Wrong rowKey format. Must not have extension')
+  }
+}
+
+export { settings, isLargeSize, isPDFfle, verifyKeys }

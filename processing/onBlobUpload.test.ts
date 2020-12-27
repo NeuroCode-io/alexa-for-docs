@@ -48,6 +48,6 @@ describe('onBlobUpload', () => {
 
     await onPDFupload(ctx, pdfContent)
 
-    expect(mockUpload).toHaveBeenCalledWith('bill.json', expect.anything())
+    expect(mockUpload).toHaveBeenCalledWith('1609089255445-bill.json', expect.anything())
   })
 })

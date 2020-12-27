@@ -9,21 +9,25 @@ import { StateStore } from './state'
 import * as verify from './verify'
 
 const onPDFupload = async (ctx: azure.storage.BlobContext, arg: Buffer) => {
-  let st = undefined
+  let state = undefined
 
   try {
     const { fileName, partitionKey, rowKey } = keysFromFileName(ctx.bindingData.blobTrigger)
-    st = new StateStore(partitionKey, rowKey)
+    verify.verifyKeys(partitionKey, rowKey)
+    
+    state = new StateStore(partitionKey, rowKey)
 
     if (verify.isLargeSize(arg)) {
-      return await st.fileTooLarge()
+      return await state.fileTooLarge()
     }
 
     if (!verify.isPDFfle(arg)) {
-      return await st.notPDFtype()
+      return await state.notPDFtype()
     }
 
-    await st.pdfFileUploaded()
+    
+
+    await state.pdfFileUploaded()
 
     ctx.log.info(`Processing ${fileName}`)
 
@@ -37,15 +41,15 @@ const onPDFupload = async (ctx: azure.storage.BlobContext, arg: Buffer) => {
       })
     }
 
-    const uploadFileName = `${rowKey}.json`
+    const uploadFileName = `${partitionKey}-${rowKey}.json`
     const content = Buffer.from(JSON.stringify({ result }))
 
     await uploadJsonFile(uploadFileName, content)
-    await st.knowledgeSourceProcessed()
+    await state.knowledgeSourceProcessed()
 
     ctx.log.info(`Processing ${fileName} done`)
   } catch (error) {
-    await Promise.all([reportError(error), st?.internalError()])
+    await Promise.all([reportError(error), state?.internalError()])
   }
 }
 
