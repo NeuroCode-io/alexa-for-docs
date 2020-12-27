@@ -17,7 +17,7 @@ const storageContainer = new azure.storage.Container('pdf-upload', {
 })
 
 const stateStore = new azure.storage.Table('statestore', {
-  name: 'statestore',
+  name: config.tableName,
   storageAccountName: storageAccount.name,
 })
 

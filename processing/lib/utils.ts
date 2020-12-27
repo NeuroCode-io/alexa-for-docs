@@ -11,13 +11,16 @@ const isSentence = (sentence: string) => {
   return numberOfWordsWithDigits / words.length >= 0.4 ? false : true
 }
 
+//remove any whitespace symbol: spaces, tabs, and line breaks
+const cleanText = (text: string) => text.replace(/\s+/g, ' ').trim()
+
 const keysFromFileName = (filePath: string) => {
-  const fileName = path.basename(filePath)
-  const [partitionKey, ...rest] = fileName.split('-')
+  const { name, ext } = path.parse(filePath)
+  const [partitionKey, ...rest] = name.split('-')
   const rowKey = rest.join('-')
 
   return {
-    partitionKey, rowKey, fileName
+    partitionKey, rowKey, fileName: name + ext
   }
 }
 
@@ -25,4 +28,4 @@ const missing = (key: string) => {
   throw new Error(`${key} app setting missing`)
 }
 
-export { isSentence, keysFromFileName, missing }
+export { isSentence, keysFromFileName, cleanText, missing }

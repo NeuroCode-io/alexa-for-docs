@@ -14,7 +14,7 @@ const createIndex = async (endpoint: string, apiKey: string) => {
 
   await client
     .createOrUpdateIndex({
-      name: 'neurocode-uploads',
+      name: config.searchServiceIndex,
       // https://docs.microsoft.com/en-us/azure/search/index-ranking-similarity
       similarity: {
         odatatype: '#Microsoft.Azure.Search.BM25Similarity',

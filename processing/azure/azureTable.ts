@@ -12,14 +12,14 @@ type AzureTableInput = {
   accountKey: string
 }
 
-type AzureEntityOutput = {
+type AzureTableEntity = {
   PartitionKey: { $: string; _: string }
   RowKey: { $: string; _: string }
-  Timestamp: { $: string; _: Date }
+  Timestamp?: { $: string; _: Date }
   state: { _: ProcessingState }
   insertedAt: { $: string; _: Date }
   updatedAt: { $: string; _: Date }
-  '.metadata': {
+  '.metadata'?: {
     metadata: string
     etag: string
   }
@@ -31,7 +31,7 @@ type Entity = {
   updatedAt: Date
   partitionKey: string
   rowKey: string
-  etag: string
+  etag?: string
 }
 
 export class AzureTable {
@@ -59,12 +59,69 @@ export class AzureTable {
     })
   }
 
-  async updateState(partitionKey: string, rowKey: string, oldState: ProcessingState, newState: ProcessingState) {
-    const oldEntity = await this.retrieveEntity<AzureEntityOutput>(partitionKey, rowKey)
+  async insertEntity(entity: Entity): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const azEntity = {
+        PartitionKey: {
+          $: 'Edm.String',
+          _: entity.partitionKey,
+        },
+        RowKey: {
+          $: 'Edm.String',
+          _: entity.rowKey,
+        },
+        state: {
+          _: entity.state,
+        },
+        insertedAt: {
+          $: 'Edm.DateTime',
+          _: entity.insertedAt,
+        },
+        updatedAt: {
+          $: 'Edm.DateTime',
+          _: entity.updatedAt,
+        },
+      }
+
+      this.service.insertEntity<AzureTableEntity>(this.tableName, azEntity, { echoContent: false }, (error) => {
+        if (error) return reject(error)
+
+        resolve()
+      })
+    })
+  }
+
+  async deleteEntity(partitionKey: string, rowKey: string): Promise<void> {
+    const azEntity = {
+      PartitionKey: {
+        $: 'Edm.String',
+        _: partitionKey,
+      },
+      RowKey: {
+        $: 'Edm.String',
+        _: rowKey,
+      }
+    }
+    return new Promise((resolve, reject) => {
+      this.service.deleteEntity(this.tableName, azEntity, {}, (error) => {
+        if (error) return reject(error)
+
+        resolve()
+      })
+    })
+  }
+
+  async updateState(
+    partitionKey: string,
+    rowKey: string,
+    newState: ProcessingState,
+    oldState?: ProcessingState
+  ): Promise<void> {
+    const oldEntity = await this.retrieveEntity<AzureTableEntity>(partitionKey, rowKey)
     const { state, updatedAt, ...rest } = oldEntity
 
-    if (state['_'] !== oldState) {
-      throw new Error(`IllegalState: Received ${oldEntity.state} but wanted ${oldState}`)
+    if (oldState && state['_'] !== oldState) {
+      throw new Error(`IllegalState: Received ${state['_']} but wanted ${oldState}`)
     }
 
     return new Promise((resolve, reject) => {
@@ -77,7 +134,7 @@ export class AzureTable {
       this.service.replaceEntity(this.tableName, newEntity, (error) => {
         if (error) return reject(error)
 
-        resolve({})
+        resolve()
       })
     })
   }
