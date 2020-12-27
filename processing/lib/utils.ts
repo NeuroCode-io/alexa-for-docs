@@ -11,7 +11,7 @@ const isSentence = (sentence: string) => {
   return numberOfWordsWithDigits / words.length >= 0.4 ? false : true
 }
 
-//remove any whitespace symbol: spaces, tabs, and line breaks
+//remove any whitespace symbols: spaces, tabs, and line breaks
 const cleanText = (text: string) => text.replace(/\s+/g, ' ').trim()
 
 const keysFromFileName = (filePath: string) => {

@@ -14,6 +14,7 @@ const onPDFupload = async (ctx: azure.storage.BlobContext, arg: Buffer) => {
   try {
     const { fileName, partitionKey, rowKey } = keysFromFileName(ctx.bindingData.blobTrigger)
     st = new StateStore(partitionKey, rowKey)
+
     if (verify.isLargeSize(arg)) {
       return await st.fileTooLarge()
     }
