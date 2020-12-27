@@ -25,7 +25,7 @@ export default {
   resourceGroupName: rgName,
   location: config.require('deployLocation'),
   searchSku: config.require('searchServiceSku'),
-  slackHook: config.requireSecret('slackWebHook').apply((s) => s),
+  slackHook: config.requireSecret('slackWebHook'),
   searchServiceIndex,
   tableName
 }

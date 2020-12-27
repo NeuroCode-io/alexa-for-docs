@@ -1,15 +1,15 @@
 import * as azure from '@pulumi/azure'
-import { onPDFupload } from './onBlobUpload'
-import * as blob from './azure/blob'
+import * as search from './azure/searchService'
 import * as fs from 'fs'
-import { config } from 'dotenv'
 import { AzureTable } from './azure/azureTable'
+import { onJsonUpload } from './onJsonUpload'
+import { config } from 'dotenv'
 
 config({ path: 'test.env' })
 
-describe('onBlobUpload', () => {
-  let mockUpload = jest.fn()
-  const testParitionKey = '1609089255445'
+describe('onJsonUpload', () => {
+  let mockSaveDocs = jest.fn()
+  const testParitionKey = '1609089255447'
   const testRowKey = 'bill'
   const dt = new Date()
   const testTable = new AzureTable({
@@ -17,15 +17,16 @@ describe('onBlobUpload', () => {
     accountKey: process.env.STORAGE_ACCOUNT_KEY ?? '',
     accountName: process.env.STORAGE_ACCOUNT_NAME ?? '',
   })
+
   beforeEach(async () => {
     //@ts-ignore
-    blob.uploadJsonFile = mockUpload
+    search.saveDocuments = mockSaveDocs
     await testTable.insertEntity({
       partitionKey: testParitionKey,
       rowKey: testRowKey,
       updatedAt: dt,
       insertedAt: dt,
-      state: 'pdf-knowledge-source-requested',
+      state: 'pdf-knowledge-source-processed',
     })
   })
 
@@ -35,19 +36,22 @@ describe('onBlobUpload', () => {
     jest.resetModules()
   })
 
-  it('should process pdf file', async () => {
-    const pdfContent = fs.readFileSync('./test/bill.pdf')
+  it('should process json file', async () => {
+    const jsonContent = fs.readFileSync('./test/book.json')
     const ctx = {
       bindingData: {
-        blobTrigger: `./test/${testParitionKey}-${testRowKey}.pdf`,
+        blobTrigger: `./test/${testParitionKey}-${testRowKey}.json`,
       },
       log: {
         info: console.log,
+        warn: console.log,
       },
     } as azure.storage.BlobContext
 
-    await onPDFupload(ctx, pdfContent)
+    await onJsonUpload(ctx, jsonContent)
 
-    expect(mockUpload).toHaveBeenCalledWith('bill.json', expect.anything())
+    expect(mockSaveDocs).toHaveBeenCalledTimes(1)
+    //Number of pages = 219
+    expect(mockSaveDocs.mock.calls[0][0].length).toBe(219)
   })
 })
