@@ -4,8 +4,9 @@ const isSentence = (sentence: string) => {
   const words = sentence.split(' ')
   if (words.length <= 3) return false
 
-  const numberOfWordsWithDigits = words.map((word) => [...word].some((i) => Number.isFinite(-i))).filter((s) => s)
-    .length
+  const isNumber = (char: String) => Number.isFinite(+char)
+
+  const numberOfWordsWithDigits = words.map((word) => [...word].some(isNumber)).filter((s) => s).length
 
   // are 40% of the words in the sentence with digits
   return numberOfWordsWithDigits / words.length >= 0.4 ? false : true
@@ -20,7 +21,9 @@ const keysFromFileName = (filePath: string) => {
   const rowKey = rest.join('-')
 
   return {
-    partitionKey, rowKey, fileName: name + ext
+    partitionKey,
+    rowKey,
+    fileName: name + ext,
   }
 }
 

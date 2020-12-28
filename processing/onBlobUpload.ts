@@ -14,7 +14,7 @@ const onPDFupload = async (ctx: azure.storage.BlobContext, arg: Buffer) => {
   try {
     const { fileName, partitionKey, rowKey } = keysFromFileName(ctx.bindingData.blobTrigger)
     verify.verifyKeys(partitionKey, rowKey)
-    
+
     state = new StateStore(partitionKey, rowKey)
 
     if (verify.isLargeSize(arg)) {
@@ -24,8 +24,6 @@ const onPDFupload = async (ctx: azure.storage.BlobContext, arg: Buffer) => {
     if (!verify.isPDFfle(arg)) {
       return await state.notPDFtype()
     }
-
-    
 
     await state.pdfFileUploaded()
 

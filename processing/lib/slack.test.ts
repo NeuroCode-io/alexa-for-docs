@@ -17,7 +17,6 @@ describe('slack', () => {
     process.env = env
   })
 
-
   it('should reportError', async () => {
     mockedPost.mockResolvedValue({ data: { success: true } })
     await reportError(new Error('test'))

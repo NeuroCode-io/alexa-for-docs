@@ -15,7 +15,7 @@ const onJsonUpload = async (ctx: azure.storage.BlobContext, arg: Buffer) => {
   try {
     const { fileName, partitionKey, rowKey } = keysFromFileName(ctx.bindingData.blobTrigger)
     verify.verifyKeys(partitionKey, rowKey)
-    
+
     state = new StateStore(partitionKey, rowKey)
     ctx.log.info(`Processing ${fileName}`)
 

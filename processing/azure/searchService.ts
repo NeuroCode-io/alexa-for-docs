@@ -4,7 +4,7 @@ import * as verify from '../verify'
 import { ProcessedJson } from '../types'
 
 const saveDocuments = async (data: ProcessedJson[]) => {
-const opts = verify.settings()
+  const opts = verify.settings()
 
   const client = new SearchClient(
     `https://${opts.searchServiceName}.search.windows.net`,

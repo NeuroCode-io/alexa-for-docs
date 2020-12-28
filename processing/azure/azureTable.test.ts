@@ -38,13 +38,15 @@ describe('azureTable', () => {
   })
 
   it('should throw insertEntity if exists', async () => {
-    await expect(testTable.insertEntity({
-      partitionKey: testParitionKey,
-      rowKey: testRowKey,
-      updatedAt: dt,
-      insertedAt: dt,
-      state: 'pdf-knowledge-source-processed'
-    })).rejects.toThrow()
+    await expect(
+      testTable.insertEntity({
+        partitionKey: testParitionKey,
+        rowKey: testRowKey,
+        updatedAt: dt,
+        insertedAt: dt,
+        state: 'pdf-knowledge-source-processed',
+      })
+    ).rejects.toThrow()
   })
 
   it('should updateState', async () => {

@@ -27,5 +27,5 @@ export default {
   searchSku: config.require('searchServiceSku'),
   slackHook: config.requireSecret('slackWebHook'),
   searchServiceIndex,
-  tableName
+  tableName,
 }

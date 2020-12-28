@@ -4,7 +4,7 @@ describe('generateId', () => {
   describe('generateId', () => {
     it('should generate a mongo conform objectId', () => {
       const id = generateId()
-  
+
       expect(id.endsWith('1')).toBeTruthy()
       expect(id.length).toEqual(24)
     })

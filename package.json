@@ -7,7 +7,7 @@
         "build:watch": "onchange 'src/**/*.ts' -- npm run compile",
         "view:coverage": "serve coverage/lcov-report",
         "clean": "rm -rf coverage bin",
-        "format": "prettier --write '**/*.{ts,js,css,json,md}'",
+        "format": "prettier --write '**/*.{ts,tsx}'",
         "compile": "tsc"
     },
     "devDependencies": {

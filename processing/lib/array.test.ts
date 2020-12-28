@@ -7,7 +7,6 @@ describe('Array', () => {
     const chunckedArr = chunk(arr, 50)
 
     expect(chunckedArr.length).toBe(2)
-
   })
 
   it('should throw for invalid input', () => {

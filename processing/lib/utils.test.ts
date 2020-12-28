@@ -23,7 +23,11 @@ describe('utils', () => {
       ],
       [
         '/home/someone/somewhere/1234-book-with-alot-of-hyphens.pdf',
-        { partitionKey: '1234', rowKey: 'book-with-alot-of-hyphens', fileName: '1234-book-with-alot-of-hyphens.pdf' },
+        {
+          partitionKey: '1234',
+          rowKey: 'book-with-alot-of-hyphens',
+          fileName: '1234-book-with-alot-of-hyphens.pdf',
+        },
       ],
     ]
     it.each(testCases)('should parse keys from filename', (filePath, expected) => {
@@ -43,18 +47,9 @@ describe('utils', () => {
         'Introduction\tto\tCSS CSS \t(an\tabbreviation\tof\t Cascading\tStyle\tSheets )\tis\tthe\tlanguage\tthat\twe\tuse\tto\tstyle\tan HTML\tfile,\tand\ttell\tthe\tbrowser\thow\tshould\tit\trender\tthe\telements\ton\tthe\tpage.',
         'Introduction to CSS CSS (an abbreviation of Cascading Style Sheets ) is the language that we use to style an HTML file, and tell the browser how should it render the elements on the page.',
       ],
-      [
-        'Test  sentence',
-        'Test sentence'
-      ],
-      [
-        ' Test sentence ',
-        'Test sentence'
-      ],
-      [
-        '  Test  sentence  \n is here',
-        'Test sentence is here'
-      ],
+      ['Test  sentence', 'Test sentence'],
+      [' Test sentence ', 'Test sentence'],
+      ['  Test  sentence  \n is here', 'Test sentence is here'],
     ]
     it.each(testCases)('should clean the text', (dirty, clean) => {
       expect(cleanText(dirty)).toEqual(clean)

@@ -37,7 +37,13 @@ const writeTestEnvFile = () => {
           search.name.apply((searchServiceName) => {
             fs.writeFileSync(
               'test.env',
-              buildTestEnvFile({ accountKey, accountName, containerName, searchApiKey, searchServiceName })
+              buildTestEnvFile({
+                accountKey,
+                accountName,
+                containerName,
+                searchApiKey,
+                searchServiceName,
+              })
             )
           })
         })

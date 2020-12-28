@@ -100,7 +100,7 @@ export class AzureTable {
       RowKey: {
         $: 'Edm.String',
         _: rowKey,
-      }
+      },
     }
     return new Promise((resolve, reject) => {
       this.service.deleteEntity(this.tableName, azEntity, {}, (error) => {

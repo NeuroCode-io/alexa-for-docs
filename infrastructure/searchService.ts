@@ -19,7 +19,7 @@ const createIndex = async (endpoint: string, apiKey: string) => {
       similarity: {
         odatatype: '#Microsoft.Azure.Search.BM25Similarity',
         k1: 1.2,
-        b: 0.75
+        b: 0.75,
       },
       fields: [
         {
