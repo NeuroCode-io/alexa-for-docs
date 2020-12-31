@@ -16,16 +16,19 @@ describe('utils', () => {
 
   describe('keysFromFileName', () => {
     const testCases = [
-      ['/home/someone/somewhere/1234-book.pdf', { partitionKey: '1234', rowKey: 'book', fileName: '1234-book.pdf' }],
+      [
+        '/home/someone/somewhere/1234-book.pdf',
+        { partitionKey: '1234', rowKey: 'book.pdf', fileName: '1234-book.pdf' },
+      ],
       [
         '/home/someone/somewhere/1234-book.tar.gz',
-        { partitionKey: '1234', rowKey: 'book.tar', fileName: '1234-book.tar.gz' },
+        { partitionKey: '1234', rowKey: 'book.tar.gz', fileName: '1234-book.tar.gz' },
       ],
       [
         '/home/someone/somewhere/1234-book-with-alot-of-hyphens.pdf',
         {
           partitionKey: '1234',
-          rowKey: 'book-with-alot-of-hyphens',
+          rowKey: 'book-with-alot-of-hyphens.pdf',
           fileName: '1234-book-with-alot-of-hyphens.pdf',
         },
       ],

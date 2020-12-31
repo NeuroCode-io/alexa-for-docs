@@ -10,7 +10,7 @@ config({ path: 'test.env' })
 describe('onBlobUpload', () => {
   let mockUpload = jest.fn()
   const testParitionKey = '1609089255445'
-  const testRowKey = 'bill'
+  const testRowKey = 'bill.pdf'
   const dt = new Date()
   const testTable = new AzureTable({
     tableName: process.env.TABLE_NAME ?? '',
@@ -39,7 +39,7 @@ describe('onBlobUpload', () => {
     const pdfContent = fs.readFileSync('./test/bill.pdf')
     const ctx = {
       bindingData: {
-        blobTrigger: `./test/${testParitionKey}-${testRowKey}.pdf`,
+        blobTrigger: `./test/${testParitionKey}-${testRowKey}`,
       },
       log: {
         info: console.log,
@@ -48,6 +48,6 @@ describe('onBlobUpload', () => {
 
     await onPDFupload(ctx, pdfContent)
 
-    expect(mockUpload).toHaveBeenCalledWith('1609089255445-bill.json', expect.anything())
+    expect(mockUpload).toHaveBeenCalledWith(`${testParitionKey}-${testRowKey}`, expect.anything())
   })
 })

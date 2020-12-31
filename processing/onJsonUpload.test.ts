@@ -10,7 +10,7 @@ config({ path: 'test.env' })
 describe('onJsonUpload', () => {
   let mockSaveDocs = jest.fn()
   const testParitionKey = '1609089255447'
-  const testRowKey = 'bill'
+  const testRowKey = 'bill.pdf'
   const dt = new Date()
   const testTable = new AzureTable({
     tableName: process.env.TABLE_NAME ?? '',
@@ -40,7 +40,7 @@ describe('onJsonUpload', () => {
     const jsonContent = fs.readFileSync('./test/book.json')
     const ctx = {
       bindingData: {
-        blobTrigger: `./test/${testParitionKey}-${testRowKey}.json`,
+        blobTrigger: `./test/${testParitionKey}-${testRowKey}`,
       },
       log: {
         info: console.log,

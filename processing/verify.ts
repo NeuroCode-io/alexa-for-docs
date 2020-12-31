@@ -31,12 +31,9 @@ const isPDFfle = async (buf: Buffer) => {
   return true
 }
 
-const verifyKeys = (partitionKey: string, rowKey: string) => {
+const verifyKeys = (partitionKey: string) => {
   if (!Number.isFinite(+partitionKey)) {
     throw new Error('Wrong partitionKey format')
-  }
-  if (rowKey.includes('.pdf') || rowKey.includes('.json')) {
-    throw new Error('Wrong rowKey format. Must not have extension')
   }
 }
 

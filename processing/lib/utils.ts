@@ -16,14 +16,14 @@ const isSentence = (sentence: string) => {
 const cleanText = (text: string) => text.replace(/\s+/g, ' ').trim()
 
 const keysFromFileName = (filePath: string) => {
-  const { name, ext } = path.parse(filePath)
-  const [partitionKey, ...rest] = name.split('-')
+  const fileName = path.basename(filePath)
+  const [partitionKey, ...rest] = fileName.split('-')
   const rowKey = rest.join('-')
 
   return {
     partitionKey,
     rowKey,
-    fileName: name + ext,
+    fileName,
   }
 }
 

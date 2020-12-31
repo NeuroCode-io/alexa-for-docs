@@ -12,8 +12,8 @@ const onPDFupload = async (ctx: azure.storage.BlobContext, arg: Buffer) => {
   let state = undefined
 
   try {
-    const { fileName, partitionKey, rowKey } = keysFromFileName(ctx.bindingData.blobTrigger)
-    verify.verifyKeys(partitionKey, rowKey)
+    const { partitionKey, rowKey, fileName } = keysFromFileName(ctx.bindingData.blobTrigger)
+    verify.verifyKeys(partitionKey)
 
     state = new StateStore(partitionKey, rowKey)
 
@@ -39,10 +39,9 @@ const onPDFupload = async (ctx: azure.storage.BlobContext, arg: Buffer) => {
       })
     }
 
-    const uploadFileName = `${partitionKey}-${rowKey}.json`
     const content = Buffer.from(JSON.stringify({ result }))
 
-    await uploadJsonFile(uploadFileName, content)
+    await uploadJsonFile(fileName, content)
     await state.knowledgeSourceProcessed()
 
     ctx.log.info(`Processing ${fileName} done`)
