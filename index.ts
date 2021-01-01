@@ -14,7 +14,6 @@ const pdfUpload = storageContainer.getEventFunction('pdf-upload', {
 
 const jsonProcessing = processedContainer.getEventFunction('json-process', {
   callback: onJsonUpload,
-  filterSuffix: '.json',
 })
 
 const buildTestEnvFile = (envs: any) =>

@@ -2,8 +2,6 @@ import { BlobServiceClient, StorageSharedKeyCredential } from '@azure/storage-bl
 import { settings } from '../verify'
 
 const uploadJsonFile = async (fileName: string, content: Buffer) => {
-  if (!fileName.endsWith('json')) throw new Error(`Wrong file extension. Was expecting JSON but got ${fileName}`)
-
   const opts = settings()
   const sharedKeyCredential = new StorageSharedKeyCredential(opts.accountName, opts.accountKey)
   const blobServiceClient = new BlobServiceClient(
