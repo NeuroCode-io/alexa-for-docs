@@ -1,4 +1,4 @@
-from config import config
+import config 
 import requests
 
 from azure.core.credentials import AzureKeyCredential
@@ -26,15 +26,15 @@ def create_idx(idx_name):
         ),
     ]
     client = SearchIndexClient(endpoint, AzureKeyCredential(key))
-    cors_options = CorsOptions(allowed_origins=["*"], max_age_in_seconds=60)
-    sim = BM25SimilarityAlgorithm(k1=1.3, b=0.5)
-    scoring_profiles = []
+    #cors_options = CorsOptions(allowed_origins=["*"], max_age_in_seconds=60)
+    #sim = BM25SimilarityAlgorithm(k1=1.3, b=0.5)
+    #scoring_profiles = []
     index = SearchIndex(
         name=idx_name,
         fields=fields,
-        similarity=sim,
-        scoring_profiles=scoring_profiles,
-        cors_options=cors_options,
+        #similarity=sim,
+        #scoring_profiles=scoring_profiles,
+        #cors_options=cors_options,
     )
     return client.create_index(index)
 
