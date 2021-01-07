@@ -5,7 +5,7 @@ import azure.functions as func
 
 def test_happy_path():
     req = func.HttpRequest(
-        method="GET",
+        method="POST",
         url="/api/predict",
         body=json.dumps(
             {
@@ -18,12 +18,13 @@ def test_happy_path():
     resp = main(req)
     json_resp = json.loads(resp.get_body())
 
-    assert len(json_resp.get("result")) == 4
+    assert json_resp["score"]
+    assert json_resp["answer"]
 
 
 def test_question_not_given():
     req = func.HttpRequest(
-        method="GET",
+        method="POST",
         url="/api/predict",
         body=json.dumps(
             {
@@ -40,7 +41,7 @@ def test_question_not_given():
 
 def test_context_not_given():
     req = func.HttpRequest(
-        method="GET",
+        method="POST",
         url="/api/predict",
         body=json.dumps(
             {
@@ -57,7 +58,7 @@ def test_context_not_given():
 
 def test_long_context():
     req = func.HttpRequest(
-        method="GET",
+        method="POST",
         url="/api/predict",
         body=json.dumps(
             {
