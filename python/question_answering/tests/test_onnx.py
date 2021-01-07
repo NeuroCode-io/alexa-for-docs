@@ -20,6 +20,7 @@ def test_happy_path():
 
     assert json_resp["score"]
     assert json_resp["answer"]
+    assert len(json_resp) == 2 # two keys in JSON
 
 
 def test_question_not_given():
@@ -72,5 +73,9 @@ def test_long_context():
     )
 
     resp = main(req)
+    json_resp = json.loads(resp.get_body())
 
-    assert resp.status_code == 200
+    assert json_resp["score"]
+    assert json_resp["answer"]
+    assert len(json_resp) == 2
+
