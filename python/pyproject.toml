@@ -8,9 +8,9 @@ authors = ["elenacramer <elenascramer@gmail.com>"]
 python = "^3.8"
 onnxruntime = "^1.6.0"
 onnxruntime-tools = "^1.5.2"
-torch = "^1.7.1"
-transformers = "^4.0.1"
 azure-functions = "^1.5.0"
+farm-haystack = "^0.6.0"
+pandas = "^1.2.0"
 
 [tool.poetry.dev-dependencies]
 black = "^20.8b1"
